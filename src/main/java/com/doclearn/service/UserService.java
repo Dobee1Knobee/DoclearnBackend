@@ -32,7 +32,7 @@ public class UserService implements UserDetailsService {
 	 * @param user - объект пользователя для сохранения.
 	 * @return сохранённый пользователь.
 	 */
-	public User saveUser(User user) {
+	public  User saveUser(User user) {
 		validateEmailUniqueness(user.getEmail());
 		return userRepo.save(user);
 	}

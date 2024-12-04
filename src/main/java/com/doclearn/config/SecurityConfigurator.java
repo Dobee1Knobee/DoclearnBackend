@@ -58,7 +58,8 @@ public class SecurityConfigurator {
                         .accessDeniedHandler(new AccessDeniedHandlerImpl())  // Обработка ошибки доступа
                 )
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/public/**").permitAll()  // Разрешаем доступ для всех к /public/**
+                        .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()// Разрешаем доступ для всех к /public/**
                         .requestMatchers("/auth/**").permitAll()    // Разрешаем доступ для всех к /auth/**
                         .requestMatchers("/secured/**").authenticated()  // Требует аутентификацию
                         .anyRequest().authenticated()  // Все остальные запросы требуют аутентификации

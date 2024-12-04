@@ -1,10 +1,17 @@
 package com.doclearn.controller;
 
+import com.doclearn.config.JwtCore;
 import com.doclearn.model.TemporaryRegToDel;
+import com.doclearn.model.User;
+import com.doclearn.repository.UserRepository;
 import com.doclearn.service.EmailService;
 import com.doclearn.service.TemporaryRegService;
+import com.doclearn.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -14,17 +21,32 @@ import java.util.Random;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
-@RequestMapping("/api/temp-reg")
+@RequestMapping("/api")
 public class TemporaryRegController {
 
+    private PasswordEncoder passwordEncoder;
+    private AuthenticationManager authenticationManager;
+    private JwtCore jwtCore;
     @Autowired
     private TemporaryRegService temporaryRegService;
 
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private UserRepository userRepository;
     // Хранилище для временных регистраций
-    private Map<String, TemporaryRegToDel> temporaryRegToDelMap = new HashMap<>();
+    private Map<String, User> temporaryRegToDelMap = new HashMap<>();
+
+    public TemporaryRegController(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtCore jwtCore) {
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtCore = jwtCore;
+    }
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     // Генерация случайного кода
     private String generateCode() {
@@ -33,7 +55,7 @@ public class TemporaryRegController {
 
     // Создание временной регистрации
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody TemporaryRegToDel reg) {
+    public ResponseEntity<String> register(@RequestBody User reg) {
         String generatedCode = generateCode();
         emailService.sendEmail(reg.getEmail(), generatedCode);
         temporaryRegToDelMap.put(generatedCode, reg);
@@ -44,14 +66,23 @@ public class TemporaryRegController {
     @PostMapping("/validation")
     public ResponseEntity<String> validate(@RequestBody Map<String, String> request) {
         String code = request.get("code");
-        TemporaryRegToDel tempReg = temporaryRegToDelMap.get(code);
+        User tempReg = temporaryRegToDelMap.get(code);
 
         if (tempReg != null) {
             // Успешная валидация, здесь можно добавить логику сохранения пользователя в базу данных
+            tempReg.setPassword(passwordEncoder.encode(tempReg.getPassword()));
 
-            temporaryRegService.saveTempPerson(tempReg);
+            try {
+                // Сохраняем нового пользователя в базе данных
+                userRepository.save(tempReg);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving user: " + e.getMessage());
+            }
             temporaryRegToDelMap.remove(code); // Удаляем запись после успешной валидации
-            return ResponseEntity.ok("Валидация прошла успешно.");
+            // Возвращаем успешный ответ с информацией о зарегистрированном пользователе (например, email)
+            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully with email: " + tempReg.getEmail());
+
+
         } else {
             return ResponseEntity.badRequest().body("Неправильный код валидации.");
         }
