@@ -32,9 +32,13 @@ public class Course {
     private double rating;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "author_id", nullable = false) 
     @Getter @Setter
     private Author author;
+
+    @JoinColumn(name = "author_id", nullable = false)
+    @Getter @Setter
+    private Long authorId;
+
 
     @Getter @Setter
     private double price;
@@ -70,7 +74,8 @@ public class Course {
         this.description = description;
         this.videoUrl = null; // Инициализация по умолчанию
         this.rating = 0.0; 
-        this.author = author; 
+        this.author = author;
+        this.authorId = author.getId();
         this.category = category;
         this.price = price;
         this.createdAt = new Timestamp(System.currentTimeMillis());
