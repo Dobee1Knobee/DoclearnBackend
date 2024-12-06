@@ -1,5 +1,6 @@
 package com.doclearn.config;
 
+import com.doclearn.model.Author;
 import com.doclearn.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +36,16 @@ public class UserDetailsImpl implements UserDetails {
                 user.getPassword(),
                 user.getEmail(),
                 user.isEnabled());  // Учитываем состояние включенности пользователя
+    }
+
+    public static UserDetailsImpl buildAuthor(Author author) {
+        return new UserDetailsImpl(
+                author.getId(),
+                author.getFirstName(),
+                author.getLastName(),
+                author.getPassword(),
+                author.getEmail(),
+                author.isEnabled());  // Учитываем состояние включенности пользователя
     }
 
     @Override

@@ -32,7 +32,7 @@ public class Author {
     private String firstName;
 
     @Column(name = "password", nullable = false)
-
+    @Getter @Setter
     private String password;
 
 
@@ -65,24 +65,17 @@ public class Author {
     public Author(String firstName, String lastName, String password, String email, LocalDate birthDate,String specialization) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.setPassword(password);
+        this.password = password;
         this.email = email;
         this.birthDate = birthDate;
         this.specialization = specialization;
-
+        this.createdAt = LocalDate.now();
     }
 
     protected Author() {
 
     }
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDate.now();
-    }
-    public void setPassword(String password) {
-        this.password = BCrypt.hashpw(password, BCrypt.gensalt());
-    }
 
     public boolean checkPassword(String rawPassword) {
         return BCrypt.checkpw(rawPassword, this.password);
@@ -109,10 +102,8 @@ public class Author {
     }
 
 
-
-
-
-
-
+    public boolean isEnabled() {
+        return false;
+    }
 }
 
