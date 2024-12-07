@@ -26,6 +26,7 @@ public class SecurityConfigurator {
     private UserService userService;
     private TokenFilter tokenFilter;
 
+
     @Autowired
     public SecurityConfigurator(UserService userService, TokenFilter tokenFilter) {
         this.userService = userService;
