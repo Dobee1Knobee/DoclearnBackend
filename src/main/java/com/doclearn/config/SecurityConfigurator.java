@@ -26,6 +26,7 @@ public class SecurityConfigurator {
     private UserService userService;
     private TokenFilter tokenFilter;
 
+
     @Autowired
     public SecurityConfigurator(UserService userService, TokenFilter tokenFilter) {
         this.userService = userService;
@@ -59,9 +60,11 @@ public class SecurityConfigurator {
                 )
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/api/**").permitAll()// Разрешаем доступ для всех к /public/**
+                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("api/validation/author").permitAll()// Разрешаем доступ для всех к /public/**
                         .requestMatchers("/auth/**").permitAll()    // Разрешаем доступ для всех к /auth/**
-                        .requestMatchers("/secured/**").authenticated()  // Требует аутентификацию
+                        .requestMatchers("/secured/**").authenticated()
+                        .requestMatchers("/course/**").authenticated()// Требует аутентификацию
                         .anyRequest().authenticated()  // Все остальные запросы требуют аутентификации
                 )
 

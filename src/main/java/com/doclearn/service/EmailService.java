@@ -1,6 +1,8 @@
 package com.doclearn.service;
 
+import com.doclearn.repository.AuthorRepository;
 import com.doclearn.repository.TemporaryRegistRepository;
+import com.doclearn.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,11 +13,14 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final TemporaryRegistRepository temporaryRegistRepository;
-
+    private final UserRepository userRepository;
+    private final AuthorRepository authorRepository;
     @Autowired
-    public EmailService(JavaMailSender mailSender, TemporaryRegistRepository temporaryRegistRepository) {
+    public EmailService(JavaMailSender mailSender, TemporaryRegistRepository temporaryRegistRepository, UserRepository userRepository, AuthorRepository authorRepository) {
         this.mailSender = mailSender;
         this.temporaryRegistRepository = temporaryRegistRepository;
+        this.userRepository = userRepository;
+        this.authorRepository = authorRepository;
     }
     public void sendEmail(String to, String code) {
         validateEmailUniqueness(to);
@@ -27,7 +32,7 @@ public class EmailService {
         mailSender.send(message);
     }
     private void validateEmailUniqueness(String email) {
-        if (temporaryRegistRepository.findByEmail(email).isPresent()) {
+        if (authorRepository.findByEmail(email).isPresent() | userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already exists");
         }
     }

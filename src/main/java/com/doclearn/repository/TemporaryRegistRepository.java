@@ -10,6 +10,5 @@ import java.util.Optional;
 @Repository
 public interface TemporaryRegistRepository extends JpaRepository<TemporaryRegToDel,Long> {
 
-
     Optional<TemporaryRegToDel> findByEmail(String email);
 }

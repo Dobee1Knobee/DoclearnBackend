@@ -11,7 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "courses")
 public class Course {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter
@@ -32,12 +32,9 @@ public class Course {
     private double rating;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @Getter @Setter
-    private Author author;
-
     @JoinColumn(name = "author_id", nullable = false)
     @Getter @Setter
-    private Long authorId;
+    private Author author;
 
 
     @Getter @Setter
@@ -69,14 +66,13 @@ public class Course {
     private List<CourseTopic> courseTopics = new ArrayList<>();
 
     // Конструктор с параметрами
-    public Course(String title, String description, Author author, double price, Category category, List<CourseTopic> courseTopics) {
+    public Course(String title, String description, double price, List<CourseTopic> courseTopics) {
         this.title = title;
         this.description = description;
         this.videoUrl = null; // Инициализация по умолчанию
         this.rating = 0.0; 
         this.author = author;
-        this.authorId = author.getId();
-        this.category = category;
+//        this.category = category; TODO сделать категории
         this.price = price;
         this.createdAt = new Timestamp(System.currentTimeMillis());
         this.courseTopics = courseTopics != null ? courseTopics : new ArrayList<>(); // Обработка null
