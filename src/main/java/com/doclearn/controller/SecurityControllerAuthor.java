@@ -5,6 +5,7 @@ import com.doclearn.model.Author;
 import com.doclearn.repository.AuthorRepository;
 import com.doclearn.service.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth/author")
+@RequestMapping("/author/auth")
 public class SecurityControllerAuthor {
 
     private final AuthorRepository authorRepository;
@@ -30,6 +31,7 @@ public class SecurityControllerAuthor {
 
     @Autowired
     public SecurityControllerAuthor(AuthorRepository authorRepository, PasswordEncoder passwordEncoder,
+                                    @Qualifier("authenticationManagerAuthor")
                                     AuthenticationManager authenticationManager, JwtCore jwtCore, AuthorService authorService) {
         this.authorRepository = authorRepository;
         this.passwordEncoder = passwordEncoder;

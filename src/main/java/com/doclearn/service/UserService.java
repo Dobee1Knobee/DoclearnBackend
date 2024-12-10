@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.doclearn.config.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +15,7 @@ import com.doclearn.model.User;
 import com.doclearn.repository.UserRepository;
 
 @Service
+@Qualifier("userDetailsService")
 public class UserService implements UserDetailsService {
 
 

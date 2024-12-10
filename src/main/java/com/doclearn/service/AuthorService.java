@@ -5,6 +5,7 @@ import com.doclearn.model.Author;
 import com.doclearn.model.User;
 import com.doclearn.repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class AuthorService {
+@Qualifier("authorDetailsService")
+
+public class AuthorService implements UserDetailsService {
 
     @Autowired
     private AuthorRepository authorRepository;

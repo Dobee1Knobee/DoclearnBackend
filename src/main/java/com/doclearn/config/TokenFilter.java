@@ -1,5 +1,6 @@
 package com.doclearn.config;
 
+import com.doclearn.service.CustomDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,13 +19,13 @@ import java.io.IOException;
 @Component
 public class TokenFilter extends OncePerRequestFilter {
 
-    private JwtCore jwtCore;
-    private UserDetailsService userDetailsService;
+    private final JwtCore jwtCore;
+    private final CustomDetailsService customDetailsService;
 
     @Autowired
-    public TokenFilter(JwtCore jwtCore, UserDetailsService userDetailsService) {
+    public TokenFilter(JwtCore jwtCore, CustomDetailsService customDetailsService) {
         this.jwtCore = jwtCore;
-        this.userDetailsService = userDetailsService;
+        this.customDetailsService = customDetailsService;
     }
 
     @Override
@@ -38,8 +39,8 @@ public class TokenFilter extends OncePerRequestFilter {
             // Извлечение токена из заголовка Authorization
             String authHeader = request.getHeader("Authorization");
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                jwt = authHeader.substring(7);
-                logger.debug("JWT token extracted: {}");
+                jwt = authHeader.substring(7);  // Извлекаем токен без префикса "Bearer"
+                logger.debug("JWT token extracted");
             } else {
                 logger.warn("Authorization header not found or invalid format");
             }
@@ -47,32 +48,33 @@ public class TokenFilter extends OncePerRequestFilter {
             // Если токен найден
             if (jwt != null) {
                 try {
-                    username = jwtCore.getNameFromJwt(jwt); // Получаем имя пользователя из токена
+                    username = jwtCore.getNameFromJwt(jwt);  // Извлекаем имя пользователя из токена
                     logger.debug("Username extracted from JWT: {}");
                 } catch (ExpiredJwtException e) {
-                    logger.warn("JWT expired: {}");
+                    logger.warn("JWT expired");
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
                     return;  // Прерываем выполнение, если токен истек
                 } catch (Exception e) {
-                    logger.error("JWT parsing failed: {}");
+                    logger.error("JWT parsing failed");
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                     return;
                 }
 
                 // Если имя пользователя найдено, аутентифицируем его
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    userDetails = userDetailsService.loadUserByUsername(username); // Загружаем детали пользователя
+                    // Используем CustomDetailsService для аутентификации
+                    userDetails = customDetailsService.loadUserByUsername(username);
                     authentication = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
                             userDetails.getAuthorities()
                     );
-                    SecurityContextHolder.getContext().setAuthentication(authentication); // Устанавливаем аутентификацию в контексте безопасности
+                    SecurityContextHolder.getContext().setAuthentication(authentication);  // Устанавливаем аутентификацию в контексте безопасности
                     logger.debug("User {} authenticated successfully");
                 }
             }
         } catch (Exception e) {
-            logger.error("Error during token filtering: {}");
+            logger.error("Error during token filtering");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
         }
 
@@ -80,4 +82,3 @@ public class TokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-

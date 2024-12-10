@@ -19,14 +19,15 @@ public class JwtCore {
         private int lifetime;
 
 
-        public String generateToken(Authentication authentification){
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentification.getPrincipal();
-        return Jwts.builder().setSubject((userDetails.getUsername())).setIssuedAt(new Date())
+    public String generateToken(Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername()) // Устанавливаем имя пользователя
+                .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime() + lifetime))
-                .signWith(SignatureAlgorithm.HS256,secret)
+                .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
-
-        }
+    }
 
     public String getNameFromJwt(String jwt) {
         // Строим JwtParser через JwtParserBuilder
@@ -40,4 +41,6 @@ public class JwtCore {
         // Возвращаем subject (например, имя или идентификатор пользователя)
         return claims.getSubject();
     }
+
+
 }
