@@ -20,7 +20,7 @@ import java.io.IOException;
 public class TokenFilter extends OncePerRequestFilter {
 
     private final JwtCore jwtCore;
-    private final CustomDetailsService customDetailsService;
+    private  CustomDetailsService customDetailsService;
 
     @Autowired
     public TokenFilter(JwtCore jwtCore, CustomDetailsService customDetailsService) {
