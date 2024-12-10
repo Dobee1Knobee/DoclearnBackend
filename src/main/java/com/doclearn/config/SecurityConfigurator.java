@@ -1,13 +1,10 @@
 package com.doclearn.config;
 
 
-import com.doclearn.service.AuthorService;
 import com.doclearn.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,18 +18,18 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;@Configuration
+import org.springframework.web.cors.CorsConfiguration;
+@Configuration
 @EnableWebSecurity
 public class SecurityConfigurator {
 
-    private final UserService userService;
-    private final AuthorService authorService;
-    private final TokenFilter tokenFilter;
+    private UserService userService;
+    private TokenFilter tokenFilter;
+
 
     @Autowired
-    public SecurityConfigurator(UserService userService, AuthorService authorService, TokenFilter tokenFilter) {
+    public SecurityConfigurator(UserService userService, TokenFilter tokenFilter) {
         this.userService = userService;
-        this.authorService = authorService;
         this.tokenFilter = tokenFilter;
     }
 
@@ -42,52 +39,36 @@ public class SecurityConfigurator {
     }
 
     @Bean
-    @Qualifier("authenticationManagerUser")
-    @Primary// Указываем имя для этого бина
-    public AuthenticationManager authenticationManagerUser(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
 
     @Bean
-    @Qualifier("authenticationManagerAuthor")  // Указываем имя для этого бина
-    public AuthenticationManager authenticationManagerAuthor(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(authorService).passwordEncoder(passwordEncoder());
-        return authenticationManagerBuilder.build();
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())  // Современный способ отключения CSRF
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.applyPermitDefaultValues();
+                    config.applyPermitDefaultValues();  // Разрешаем все методы и заголовки по умолчанию
                     return config;
                 }))
                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                        .accessDeniedHandler(new AccessDeniedHandlerImpl())
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))  // Обработка ошибки аутентификации
+                        .accessDeniedHandler(new AccessDeniedHandlerImpl())  // Обработка ошибки доступа
                 )
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("api/validation/author").permitAll()
-                        .requestMatchers("/author/auth/**").permitAll()
+                        .requestMatchers("api/validation/author").permitAll()// Разрешаем доступ для всех к /public/**
+                        .requestMatchers("/auth/**").permitAll()    // Разрешаем доступ для всех к /auth/**
                         .requestMatchers("/secured/**").authenticated()
-                        .requestMatchers("/course/**").authenticated()
-                        .requestMatchers("/auth/**").permitAll()
-
-                        .anyRequest().authenticated()
+                        .requestMatchers("/course/**").authenticated()// Требует аутентификацию
+                        .anyRequest().authenticated()  // Все остальные запросы требуют аутентификации
                 )
-                .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new CustomAuthenticationFilter(
-                                authenticationManagerUser(httpSecurity),
-                                authenticationManagerAuthor(httpSecurity)),
-                        UsernamePasswordAuthenticationFilter.class);
 
+                .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 }
