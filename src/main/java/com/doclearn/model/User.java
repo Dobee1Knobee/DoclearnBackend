@@ -1,16 +1,12 @@
 package com.doclearn.model;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
-import com.doclearn.model.UserRole;
-import com.doclearn.model.Course;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -127,6 +123,7 @@ public class User implements Serializable, Supplier<String> {
     public String get() {
         return "";
     }
+
 
     public boolean isEnabled() {
         return false;

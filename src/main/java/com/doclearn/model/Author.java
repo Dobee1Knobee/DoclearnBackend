@@ -16,50 +16,48 @@ import java.util.Set;
 public class Author {
 
 
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter@Getter
     private Long id;
-    @Getter @Setter
+    @Setter @Getter
     @Column(name = "specialization", nullable = false)
     private String specialization;
     @Column(name = "last_name", nullable = false)
-    @Getter @Setter
+    @Setter @Getter
     private String lastName;
     @Column(name = "first_name", nullable = false)
-    @Getter @Setter
-
+    @Setter @Getter
     private String firstName;
 
     @Column(name = "password", nullable = false)
-    @Getter @Setter
+    @Setter @Getter
     private String password;
 
 
     @Enumerated(EnumType.STRING)
-    @Getter
-    @Setter
+    @Setter@Getter
     @Column(name = "role")
     private UserRole role = UserRole.author;
 
-    @Getter @Setter
+    @Setter @Getter
     @Column(name ="email", unique = true)
     private String email;
 
     @Column(name = "birth_date")
-    @Getter @Setter
+    @Setter @Getter
     private LocalDate birthDate;
 
     @Column(name = "created_at", updatable = false)
-    @Getter @Setter
+    @Setter @Getter
     private LocalDate createdAt;
 
-    @Getter
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
+    @Setter @Getter
     private Set<Course> courses = new HashSet<>();
 
     @Column(name = "rating", columnDefinition = "DOUBLE DEFAULT 0")
-    @Getter
+    @Setter @Getter
     private double rating;
 
     public Author(String firstName, String lastName, String password, String email, LocalDate birthDate,String specialization) {

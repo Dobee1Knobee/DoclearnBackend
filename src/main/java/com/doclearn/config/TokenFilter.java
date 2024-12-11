@@ -1,6 +1,8 @@
 package com.doclearn.config;
 
+import com.doclearn.service.AuthorService;
 import com.doclearn.service.CustomDetailsService;
+import com.doclearn.service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,12 +23,16 @@ import java.io.IOException;
 public class TokenFilter extends OncePerRequestFilter {
 
     private final JwtCore jwtCore;
+    private final UserService userService;
+    private final AuthorService authorService;
     private  CustomDetailsService customDetailsService;
 
     @Autowired
-    public TokenFilter(JwtCore jwtCore, CustomDetailsService customDetailsService) {
+    public TokenFilter(JwtCore jwtCore, CustomDetailsService customDetailsService, UserService userService, AuthorService authorService) {
         this.jwtCore = jwtCore;
         this.customDetailsService = customDetailsService;
+        this.userService = userService;
+        this.authorService = authorService;
     }
 
     @Override
@@ -33,52 +40,60 @@ public class TokenFilter extends OncePerRequestFilter {
         String jwt = null;
         String username = null;
         UserDetails userDetails = null;
-        UsernamePasswordAuthenticationToken authentication = null;
 
         try {
-            // Извлечение токена из заголовка Authorization
             String authHeader = request.getHeader("Authorization");
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                jwt = authHeader.substring(7);  // Извлекаем токен без префикса "Bearer"
-                logger.debug("JWT token extracted");
+                jwt = authHeader.substring(7);
+                logger.debug("JWT token extracted: {}");
             } else {
                 logger.warn("Authorization header not found or invalid format");
             }
 
-            // Если токен найден
             if (jwt != null) {
                 try {
-                    username = jwtCore.getNameFromJwt(jwt);  // Извлекаем имя пользователя из токена
+                    username = jwtCore.getNameFromJwt(jwt);
                     logger.debug("Username extracted from JWT: {}");
                 } catch (ExpiredJwtException e) {
-                    logger.warn("JWT expired");
+                    logger.warn("JWT expired: {}");
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
-                    return;  // Прерываем выполнение, если токен истек
+                    return;
                 } catch (Exception e) {
-                    logger.error("JWT parsing failed");
+                    logger.error("JWT parsing failed: {}");
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                     return;
                 }
 
-                // Если имя пользователя найдено, аутентифицируем его
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    // Используем CustomDetailsService для аутентификации
-                    userDetails = customDetailsService.loadUserByUsername(username);
-                    authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authentication);  // Устанавливаем аутентификацию в контексте безопасности
-                    logger.debug("User {} authenticated successfully");
+                    try {
+                        // Пытаемся сначала загрузить через UserService
+                        userDetails = userService.loadUserByUsername(username);
+                    } catch (UsernameNotFoundException e) {
+                        // Если пользователь не найден через UserService, пробуем загрузить через AuthorService
+                        userDetails = authorService.loadUserByUsername(username);
+                    }
+                    if (userDetails != null) {
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        logger.debug("User {} authenticated successfully");
+                    } else {
+                        logger.warn("User details not found for username: {}");
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+                        return;
+                    }
                 }
             }
         } catch (Exception e) {
-            logger.error("Error during token filtering");
+            logger.error("Error during token filtering: {}",e);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
+            return;
         }
 
-        // Передаем управление следующему фильтру в цепочке
         filterChain.doFilter(request, response);
     }
 }

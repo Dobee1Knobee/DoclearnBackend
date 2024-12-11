@@ -13,19 +13,19 @@ import java.util.Date;
 
 @Component
 public class JwtCore {
-        @Value("${doclearn.app.secret}")
-        private String secret;
-        @Value("${doclearn.app.expirationMs}")
-        private int lifetime;
+    @Value("${doclearn.app.secret}")
+    private String secret;
+    @Value("${doclearn.app.expirationMs}")
+    private int lifetime;
 
 
     public String generateToken(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         return Jwts.builder()
-                .setSubject(userDetails.getUsername()) // Устанавливаем имя пользователя
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + lifetime))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .setSubject(userDetails.getUsername())  // Используем username как subject
+                .setIssuedAt(new Date())  // Время создания токена
+                .setExpiration(new Date(System.currentTimeMillis() + lifetime))  // Время истечения токена
+                .signWith(SignatureAlgorithm.HS256, secret)  // Используем секретный ключ для подписи
                 .compact();
     }
 

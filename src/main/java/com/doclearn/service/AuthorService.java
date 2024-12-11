@@ -41,7 +41,7 @@ public class AuthorService implements UserDetailsService {
 
 
     private void validateEmailUniqueness(String email) {
-        if (authorRepository.findByEmail(email) != null) {
+        if (authorRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already exists");
         }
     }

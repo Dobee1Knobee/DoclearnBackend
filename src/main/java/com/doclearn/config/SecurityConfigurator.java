@@ -80,7 +80,7 @@ public class SecurityConfigurator {
                         .requestMatchers("/course/**").authenticated()
                         .requestMatchers("/auth/**").permitAll()
 
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class);
 
