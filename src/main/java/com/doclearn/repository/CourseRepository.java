@@ -19,5 +19,4 @@ public interface CourseRepository  extends JpaRepository<Course,Long>{
     // Метод для поиска курсов по ключевым словам в названии или описании
     List<Course> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String title, String description);
 
-    Course save(Course course);
 }

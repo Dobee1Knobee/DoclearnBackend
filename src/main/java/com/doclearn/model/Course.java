@@ -7,7 +7,6 @@ import lombok.Setter;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-
 @Entity
 @Table(name = "courses")
 public class Course {
@@ -27,18 +26,17 @@ public class Course {
     @Column(name = "video_url", nullable = true)
     private String videoUrl;
 
-    @Getter 
+    @Getter
     @Column(name = "rating", columnDefinition = "DOUBLE DEFAULT 0")
     private double rating;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "author_id", nullable = false)
-    @Getter @Setter
+    @Setter
     private Author author;
 
-
     @Getter @Setter
-    private double price;
+    private Double price;
 
     @Column(name = "sales_count", columnDefinition = "INT DEFAULT 0")
     @Getter
@@ -49,7 +47,7 @@ public class Course {
     private int favoritesCount;
 
     @Column(name = "created_at", updatable = false)
-    @Getter
+    @Getter @Setter
     private Timestamp createdAt;
 
     @Column(name = "updated_at")
@@ -66,25 +64,33 @@ public class Course {
     private List<CourseTopic> courseTopics = new ArrayList<>();
 
     // Конструктор с параметрами
-    public Course(String title, String description, double price, List<CourseTopic> courseTopics) {
+    public Course(String title, String description, Double price, List<CourseTopic> courseTopics) {
         this.title = title;
         this.description = description;
         this.videoUrl = null; // Инициализация по умолчанию
-        this.rating = 0.0; 
+        this.rating = 0.0;
         this.author = author;
 //        this.category = category; TODO сделать категории
         this.price = price;
+        this.updatedAt = new Timestamp(System.currentTimeMillis());
         this.createdAt = new Timestamp(System.currentTimeMillis());
         this.courseTopics = courseTopics != null ? courseTopics : new ArrayList<>(); // Обработка null
     }
 
     // Конструктор по умолчанию
-    public Course() {
-        this.courseTopics = new ArrayList<>(); // Инициализация пустого списка
-        this.createdAt = new Timestamp(System.currentTimeMillis()); // Установка времени создания по умолчанию
+    protected Course() {
+
     }
 
-    public void setRating(double v) {
+    // Метод для автоматической установки createdAt перед сохранением
+    @PrePersist
+    public void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = new Timestamp(System.currentTimeMillis());
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = new Timestamp(System.currentTimeMillis());
+        }
     }
+
 }
-
